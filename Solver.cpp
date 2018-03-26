@@ -118,6 +118,8 @@ int GetColumns(string filename){
 	ifstream file;
 	string line;
 
+	vector <int> Columns_length;
+
 	file.open(filename);
 	int columns = 0;
 	while (!file.eof()){
@@ -132,9 +134,24 @@ int GetColumns(string filename){
 					ss.ignore();
 				}
 			}
+
+			Columns_length.push_back(columns);
 		}
 	}
+
 	file.close();
+
+	if(Columns_length.size() == 0){
+		return 0;
+	}else{
+		int n = Columns_length[0];
+		for(int i = 0; i < Columns_length.size(); i ++){
+			if(Columns_length[i] != n){
+				return 0;
+			}
+		}
+	}
+
 	return columns;
 }
 
@@ -211,6 +228,10 @@ Sparse_List Load(){
 	int rows = GetRows(filename);
 
 	int columns = GetColumns(filename);
+
+	if(columns == 0){
+		return Result_List;
+	}
 
 	Data Matrix;
 
@@ -514,6 +535,8 @@ int main() {
 					if(A.First_Element != NULL){
 						cout << "You loaded the following Matrix into A: " << endl;
 						A.Print_Sparse_List();
+					}else{
+						cout << "Error loading matrix." << endl;
 					}
 					break;
 				}else if (selection == 2){
@@ -521,6 +544,8 @@ int main() {
 					if(B.First_Element != NULL){
 						cout << "You loaded the following Matrix into B: " << endl;
 						B.Print_Sparse_List();
+					}else{
+						cout << "Error loading matrix." << endl;
 					}
 					break;
 				}else if (selection == 3){}else {
@@ -596,26 +621,45 @@ int main() {
 				cout << "4. Cancel" << endl;
 				cin >> selection;
 
+				string filename;
+
 				if (selection == 1){
 					Determinant = Determinante(A);
 					if(Determinant != -1){
 						cout << "Determinante de A: " << Determinant << endl;
+						cout << "Please input the name of the file where you will store the result: ";
+						cin >> filename;
+						ofstream myfile (filename);
+						if (myfile.is_open()){
+							myfile << "Deeterminant:" << Determinant;
+						}
 					}
 				}else if (selection == 2){
 					Determinant = Determinante(B);
 					if(Determinant != -1){
 						cout << "Determinante de B: " << Determinant << endl;
+						cout << "Please input the name of the file where you will store the result: ";
+						cin >> filename;
+						ofstream myfile (filename);
+						if (myfile.is_open()){
+							myfile << "Deeterminant:" << Determinant;
+						}
 					}
 				}else if (selection == 3){
 					Determinant = Determinante(Last_Result);
 					if(Determinant != -1){
 						cout << "Determinante de LR: " << Determinant << endl;
+						cout << "Please input the name of the file where you will store the result: ";
+						cin >> filename;
+						ofstream myfile (filename);
+						if (myfile.is_open()){
+							myfile << "Deeterminant:" << Determinant;
+						}
 					}
 				}else if (selection == 4){}else {
 					cout << "Please enter a valid option." << endl;
 				}
 			}
-
 		}else if (option == 6){
 			cout << "You chose Print Matrix" << endl;
 			int Determinant;
