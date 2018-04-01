@@ -225,17 +225,16 @@ Sparse_List Load(){
 	cin >> filename;
 	ifstream file(filename);
 
-	int rows = GetRows(filename);
-
-	int columns = GetColumns(filename);
-
-	if(columns == 0){
-		return Result_List;
-	}
-
 	Data Matrix;
 
 	if(file.good()){
+		int rows = GetRows(filename);
+
+		int columns = GetColumns(filename);
+
+		if(columns == 0){
+			return Result_List;
+		}
 		cout << "File found!" << endl;
 
 		Matrix.filename = filename;
@@ -393,70 +392,92 @@ Sparse_List Resta(Sparse_List A, Sparse_List B){
 Sparse_List Multiplicacion(Sparse_List A, Sparse_List B){
 	Sparse_List Result_List = Sparse_List();
 
-	if (A.Rows != B.Rows){
-		cout << "The amount of rows in A doesn't match the amount of rows in B." << endl;
-		cout << "No action will be performed." << endl;
-	}else if (A.Columns != B.Columns){
-		cout << "The amount of columns in A doesn't match the amount of columns in B." << endl;
+	if (A.Rows != B.Columns){
+		cout << "The amount of rows in A doesn't match the amount of columns in B." << endl;
 		cout << "No action will be performed." << endl;
 	}else {
-		vector<vector<int>> Matrix (A.Rows);
-
-
+		vector<vector<int>> Matrix_A (A.Rows);
 		for (int i = 0; i < A.Rows; ++i) {
-			Matrix[i] = vector<int>(A.Columns);
+			Matrix_A[i] = vector<int>(A.Columns);
 		}
-		
-		Sparse_Node *Beginning_A = A.First_Element;
-		Sparse_Node *Temp_A = A.First_Element;
 
+		vector<vector<int>> Matrix_B (B.Rows);
+		for (int i = 0; i < B.Rows; ++i) {
+			Matrix_B[i] = vector<int>(B.Columns);
+		}
 
+		vector<vector<int>> Matrix_R (A.Rows);
+		for (int i = 0; i < A.Rows; ++i) {
+			Matrix_R[i] = vector<int>(B.Columns);
+		}
+
+		//Fill Matrix A.
+		Sparse_Node *Beginning = A.First_Element;
+		Sparse_Node *Temp = A.First_Element;
+		int R = 0;
+		int C = 0;
+
+		while(Beginning->Below != NULL){
+			while(Temp->Right != NULL){
+				Matrix_A[R][C] = Temp->Data;
+				C ++;
+				Temp = Temp->Right;
+			}
+			Matrix_A[R][C] = Temp->Data;
+			C = 0;
+			Temp = Beginning->Below;
+			Beginning = Beginning->Below;
+			R ++;
+		}
+
+		while(Temp->Right != NULL){
+			Matrix_A[R][C] = Temp->Data;
+			C ++;
+			Temp = Temp->Right;
+		}
+		Matrix_A[R][C] = Temp->Data;
+
+		//Fill Matrix B.
 		Sparse_Node *Beginning_B = B.First_Element;
 		Sparse_Node *Temp_B = B.First_Element;
+		R = 0;
+		C = 0;
 
-		int Row = 0;
-		int Column = 0;
-
-		int Temp1;
-		int Temp2;
-
-		while(Beginning_A->Below != NULL){
-			while(Temp_A->Right != NULL){
-				Temp1 = Temp_A->Data;
-				Temp2 = Temp_B->Data;
-				Matrix[Row][Column] = Temp1 * Temp2;
-				Temp_A = Temp_A->Right;
+		while(Beginning_B->Below != NULL){
+			while(Temp_B->Right != NULL){
+				Matrix_B[R][C] = Temp_B->Data;
+				C ++;
 				Temp_B = Temp_B->Right;
-				Column = Column + 1;
 			}
-			Temp1 = Temp_A->Data;
-			Temp2 = Temp_B->Data;
-			Matrix[Row][Column] = Temp1 * Temp2;
-			Temp_A = Beginning_A->Below;
+			Matrix_B[R][C] = Temp_B->Data;
+			C = 0;
 			Temp_B = Beginning_B->Below;
-			Beginning_A = Beginning_A->Below;
 			Beginning_B = Beginning_B->Below;
-			Row = Row + 1;
-			Column = 0;
+			R ++;
 		}
 
-		while(Temp_A->Right != NULL){
-			Temp1 = Temp_A->Data;
-			Temp2 = Temp_B->Data;
-			Matrix[Row][Column] = Temp1 * Temp2;
-			Temp_A = Temp_A->Right;
+		while(Temp_B->Right != NULL){
+			Matrix_B[R][C] = Temp_B->Data;
+			C ++;
 			Temp_B = Temp_B->Right;
-			Column = Column + 1;
 		}
-		Temp1 = Temp_A->Data;
-		Temp2 = Temp_B->Data;
-		Matrix[Row][Column] = Temp1 * Temp2;
-	
+		Matrix_B[R][C] = Temp_B->Data;
+
+		//Multiply.
+		for(int i=0; i < A.Rows; ++i){
+			for(int j=0; j < B.Columns; ++j){
+				for(int k=0; k < A.Columns; ++k)
+				{
+					Matrix_R[i][j] += Matrix_A[i][k] * Matrix_B[k][j];
+				}
+			}
+		}
+		
 		Data Temp_Data;
 		Temp_Data.filename = "";
 		Temp_Data.rows = A.Rows;
 		Temp_Data.columns = B.Columns;
-		Temp_Data.Matrix = Matrix;
+		Temp_Data.Matrix = Matrix_R;
 
 		Result_List = Convert_Data_To_List(Temp_Data);
 	}
